@@ -2,10 +2,10 @@
   "name": "redis-ts-zod-nodejs",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --env-file .env index.ts",
+    "dev": "tsx watch --env-file .env src/index.ts",
     "build": "tsc",
     "start": "node --env-file .env dist/index.js"
   },
