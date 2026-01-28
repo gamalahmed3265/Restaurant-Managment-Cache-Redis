@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { Response } from "express";
 
 export function successResponse(res:Response,data:any,message:string="Success",statusCode:number=200){
     return res.status(statusCode).json({

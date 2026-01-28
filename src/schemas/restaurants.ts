@@ -4,7 +4,7 @@ import {z} from "zod";
 export const RestaurantSchema = z.object({
     // id: z.string().uuid(),
     name: z.string().min(1).max(100),
-    cuisine: z.string().min(1).max(50),
+    cuisines: z.array(z.string().min(1).max(50)).min(1),
     location: z.string().min(1).max(200),
     // rating: z.number().min(0).max(5).optional(),
     // createdAt: z.string().optional(),
