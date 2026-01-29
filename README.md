@@ -1,58 +1,101 @@
 # Bites - Node, Redis, TypeScript & Express Backend
 
-This repo is an example of using Redis in node with the node-redis package. Learn how to build a node backend and use Redis's speed. Let's have a look at the basic Redis data types, then some modern features such as RedisJSON, Redis Search and Bloom filters. Shows how we can use Redis as a cache for 3rd party APIs as well.
+This repository serves as a robust example of a Node.js backend leveraging the power of Redis. It demonstrates how to integrate Redis with Node.js to build high-performance applications, utilizing modern Redis features like RedisJSON, RediSearch, and Bloom filters.
 
-Utilises the following:
+## Stack Overview
 
-- Node
-- Express
-- Redis (Hashes, Lists, Sets, Sorted Sets & Strings)
-- TypeScript
-- Zod validation (& Express middleware)
-- RedisJSON
-- Redis Search
-- Redis Bloom Filters
+- **Runtime**: Node.js
+- **Framework**: Express with TypeScript
+- **Database**: Redis (using `redis` client)
+  - _Data Types Used_: Hashes, Lists, Sets, Sorted Sets, Strings
+  - _Modules_: RedisJSON, RediSearch, RedisBloom
+- **Validation**: Zod
+- **Infrastructure**: Docker, Nginx, GitHub Actions
 
-## Tutorial
+## Quick Start (Docker)
 
-[![YouTube Video](https://img.youtube.com/vi/dQV0xzOeGzU/0.jpg)](https://youtu.be/dQV0xzOeGzU)
+The easiest way to run the application is using Docker. This will spin up the Node.js app, a Redis instance, and an Nginx reverse proxy.
 
-This repo is the code that was written in the following YouTube video. The YouTube chapters match the commits in this repo, so you can easily see what changed when.
+### Prerequisites
 
-## Usage
+- [Docker](https://www.docker.com/products/docker-desktop) installed on your machine.
 
-To use this project, you will first need to have a running Redis Stack instance. View the [Redis guide](https://redis.io/docs/latest/operate/oss_and_stack/install/) to get this set-up on your environment
+### Running the App
 
-### Development
+1.  **Clone the repository:**
 
-1. Clone the repo
-2. Run `pnpm install`
-3. Run `pnpm run dev`
+    ```bash
+    git clone <repository-url>
+    cd Redis-ts-zod-nodejs
+    ```
 
-### Production
+2.  **Start the services:**
 
-1. Clone the repo
-2. Run `pnpm install`
-3. Run `pnpm run build`
-4. Run `pnpm run start`
+    ```bash
+    docker-compose up -d --build
+    ```
 
-## What Next?
+3.  **Access the application:**
+    - **API**: `http://localhost/api/v1/...` (via Nginx)
+    - **Swagger Documentation**: `http://localhost/docs`
+    - **Redis**: Exposed on port `6379`
 
-To expand on this project you could implement the following features and improvements:
+4.  **Stop the services:**
+    ```bash
+    docker-compose down
+    ```
 
-- **Authentication and Authorization**
+## Local Development (Manual Setup)
 
-  - Implement JWT-based user authentication, including registration and login routes.
-  - Introduce Role-Based Access Control (RBAC) to restrict access to certain routes based on user roles (e.g., admin, user).
+If you prefer to run the application locally without Docker for development:
 
-- **Advanced Redis Features**
+### Prerequisites
 
-  - Utilize Redis Pub/Sub for real-time updates, enabling live communication such as updates to restaurant data or reviews.
-  - Explore Redis Streams for event sourcing to record all changes as events.
+- Node.js (v20+)
+- Pnpm (referenced in `package.json`, but `npm` works too)
+- A running Redis Stack instance (Required for JSON/Search features). See [Redis Install Guide](https://redis.io/docs/latest/operate/oss_and_stack/install/).
 
-- **Improved Caching Strategies**
+### Setup
 
-  - Implement cache invalidation by setting appropriate expiration times and automatically updating the cache when underlying data changes.
+1.  **Install dependencies:**
 
-- **Real-Time Features with WebSockets**
-  - Integrate Socket.IO to add real-time functionalities like live chat, notifications, or live updates of reviews.
+    ```bash
+    pnpm install
+    ```
+
+2.  **Environment Variables:**
+    Ensure you have an `.env` file (or set variables) matching your Redis configuration.
+3.  **Run in Development Mode:**
+
+    ```bash
+    pnpm run dev
+    ```
+
+    The server will start on port `4000` (default).
+
+4.  **Build for Production:**
+    ```bash
+    pnpm run build
+    pnpm start
+    ```
+
+## Architecture
+
+- **Nginx**: Acts as a reverse proxy, listening on port 80 and forwarding requests to the Node.js application.
+- **Node.js**: The core application logic, running on port 4000.
+- **Redis**: The primary data store, used for caching and data persistence with advanced data configurations.
+
+## CI/CD
+
+This project uses **GitHub Actions** for Continuous Integration.
+
+- **Workflow**: `.github/workflows/ci.yml`
+- **Triggers**: Pushes and Pull Requests to the `main` branch.
+- **Steps**:
+  - Installs dependencies.
+  - Runs build scripts (`pnpm build`).
+  - Verifies Docker image creation.
+
+## Tutorial Reference
+
+This code is based on the concepts from [this YouTube Video](https://youtu.be/dQV0xzOeGzU).

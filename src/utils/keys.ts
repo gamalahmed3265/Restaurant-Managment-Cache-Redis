@@ -1,6 +1,6 @@
 
 export function getKeyName(...args:string[]):string{
-    return args.join(":");
+    return `redis:${args.join(":")}`;
 }
 
 export function getRestaurantKey(restaurantId:string):string{
@@ -10,3 +10,10 @@ export function getRestaurantKey(restaurantId:string):string{
 export const reviewKeyById=(reviewId:string):string=>getKeyName("review",reviewId);
 
 export const reviewsDetailsKeyByID=(restaurantId:string):string=>getKeyName("review_details",restaurantId);
+
+
+export const cuisinesKey=getKeyName("cuisines");
+
+export const cuisinesKeyByName=(cuisineName:string):string=>getKeyName("cuisine",cuisineName);
+
+export const restaurantByCuisineKeyByID=(id:string):string=>getKeyName("cuisine_restaurants",id);

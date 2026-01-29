@@ -1,5 +1,5 @@
 {
-    "compilerOptions": {
+  "compilerOptions": {
     "esModuleInterop": true,
     "skipLibCheck": true,
     "target": "es2022",
@@ -12,15 +12,15 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "module": "NodeNext",
+    "rootDir": "./src",
     "outDir": "dist",
     "sourceMap": true,
     "lib": ["es2022"],
 
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]
-    },
-    "ignoreDeprecations": "6.0"
+    }
   },
   "include": ["src"],
   "exclude": ["dist"]

@@ -3,6 +3,8 @@ import express from "express";
 import restaurantsRoute from "@/routes/restaurants.js";
 import cuisinesRoute from "@/routes/cuisines.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./utils/swagger.js";
 
 const PORT = process.env.PORT || 4000;
 const app = express();
@@ -13,8 +15,11 @@ app.use(express.json());
 app.use("/api/v1/restaurants", restaurantsRoute);
 app.use("/api/v1/cuisines", cuisinesRoute);
 
+// Swagger documentation route
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// 404 handler (Express 5 compatible)
+
+// Error handling middleware
 app.use(errorHandler)
 
 
