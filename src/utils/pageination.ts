@@ -1,4 +1,4 @@
-export const paginateFunctions = (page: number, limit: number) => {
+export const paginateFunctions = (page: number=1, limit: number=10) => {
     const pageNum = Number(page);
     const limitNum = Number(limit);
     const startIndex = (pageNum - 1) * limitNum;

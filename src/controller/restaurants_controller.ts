@@ -1,13 +1,31 @@
 import type { Request, Response, NextFunction } from "express";
 import { nanoid } from "nanoid";
 import { getRedisClient } from "@/utils/client.js";
-import { cuisinesKey, cuisinesKeyByName, getRestaurantKey, restaurantByCuisineKeyByID, reviewKeyById, reviewsDetailsKeyByID } from "@/utils/keys.js";
+import { cuisinesKey, cuisinesKeyByName, getRestaurantKey, restaurantByCuisineKeyByID, restaurantsByRatingKey, reviewKeyById, reviewsDetailsKeyByID } from "@/utils/keys.js";
 import { successResponse, errorResponse } from "@/utils/responses.js";
 import { paginateFunctions } from "@/utils/pageination.js";
 import type { ReviewsType } from "@/schemas/reviews.js";
 import type { RestaurantsType } from "@/schemas/restaurants.js";
 
-
+export const getAllRestaurants=async(req:Request,res:Response,next:NextFunction)=>{
+  try {
+    const {page,limit}=req.query as any;
+    const client=await getRedisClient();
+    const {startIndex,endIndex}=paginateFunctions(page,limit)
+    const restaurantsIDs=await client.zRange(restaurantsByRatingKey,startIndex,endIndex,{
+      REV:true
+    });
+    const restaurants=await Promise.all(
+      restaurantsIDs.map(async (id) => {
+        const restaurantKey = getRestaurantKey(id);
+        return client.hGetAll(restaurantKey)
+      })
+    )
+    return successResponse(res,restaurants)
+  } catch (error) {
+    next(error)
+  }
+}
 
 export const createRestaurant = async (
   req: Request,
@@ -36,6 +54,8 @@ export const createRestaurant = async (
         )
       ])
     await client.hSet(restaurantKey, hashData);
+
+    client.zAdd(restaurantsByRatingKey, { score: 0, value: id });
 
     return successResponse(res, hashData, "Restaurant created", 201);
   } catch (error) {
@@ -78,7 +98,7 @@ export const createRestaurantReview = async (
     const reviewId = nanoid();
     const reviewKey = reviewKeyById(id);
     const reviewDetailsKey = reviewsDetailsKeyByID(reviewId);
-
+    const restaurantKey=getRestaurantKey(id)
     const hashData = {
       restaurant_id: id,
       review_id: reviewId,
@@ -86,11 +106,22 @@ export const createRestaurantReview = async (
       ...data,
     };
 
-    await Promise.all([
+    const [reviewCount,setResult,totalStars]=await Promise.all([
       client.lPush(reviewKey, reviewId),
       client.hSet(reviewDetailsKey, hashData),
+      client.hIncrByFloat(restaurantKey,"totalStars",data.rating)
     ]);
+    const avarageRating=Number((+totalStars/reviewCount).toFixed(1));
 
+    await Promise.all(
+    [  client.zAdd(restaurantsByRatingKey,{
+        score:avarageRating,
+        value:id
+      }),
+      client.hSet(restaurantKey,"avarageRating",avarageRating)
+
+    ]
+    )
     return successResponse(res, hashData, "Review added", 201);
   } catch (error) {
     next(error);

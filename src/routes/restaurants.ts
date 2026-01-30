@@ -10,10 +10,30 @@ import {
   createRestaurantReview,
   getRestaurantReviews,
   deleteRestaurantReview,
+  getAllRestaurants,
 } from "@/controller/restaurants_controller.js";
 
 const router = express.Router();
-
+/**
+ * @swagger
+ * /restaurants/:
+ *   get:
+ *     summary: Get restaurant
+ *     tags: [Restaurants]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Restaurants retrieved successfully
+ */
+router.get("/",getAllRestaurants)
 /**
  * @swagger
  * tags:
