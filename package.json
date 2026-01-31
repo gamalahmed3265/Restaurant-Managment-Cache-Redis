@@ -5,9 +5,9 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --env-file .env src/index.ts",
-    "build": "tsc",
-    "start": "node --env-file .env dist/index.js",
+    "dev": "node init && tsx watch --env-file .env src/index.ts",
+    "build": "node init && tsc",
+    "start": "node init && node --env-file .env dist/index.js",
     "seed": "tsx --env-file .env src/seed/createIndex.ts",
     "bloom": "tsx --env-file .env src/seed/bloomFilter.ts"
   },
@@ -17,8 +17,10 @@
   "packageManager": "pnpm@10.19.0",
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^8.4.0",
+    "dotenv": "^8.2.0",
     "express": "^5.2.1",
     "nanoid": "^5.1.6",
+    "node-fetch": "^3.3.2",
     "redis": "^5.10.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
