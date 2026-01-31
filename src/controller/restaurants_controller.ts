@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { nanoid } from "nanoid";
 import { getRedisClient } from "@/utils/client.js";
-import { cuisinesKey, cuisinesKeyByName, getRestaurantKey, indexKey, restaurantByCuisineKeyByID, restaurantDetailsKeyById, restaurantsByRatingKey, reviewKeyById, reviewsDetailsKeyByID, weatherKeyById } from "@/utils/keys.js";
+import { bloomkey, cuisinesKey, cuisinesKeyByName, getRestaurantKey, indexKey, restaurantByCuisineKeyByID, restaurantDetailsKeyById, restaurantsByRatingKey, reviewKeyById, reviewsDetailsKeyByID, weatherKeyById } from "@/utils/keys.js";
 import { successResponse, errorResponse } from "@/utils/responses.js";
 import { paginateFunctions } from "@/utils/pageination.js";
 import type { ReviewsType } from "@/schemas/reviews.js";
@@ -76,7 +76,11 @@ export const createRestaurant = async (
 
     const id = nanoid();
     const restaurantKey = getRestaurantKey(id);
-
+    const bloomString=`${data.name}`;
+    const seenBefore=await client.bf.exists(bloomkey,bloomString);
+    if(seenBefore){
+      return errorResponse(res,"Restaurant already exists",400);
+    }
     const hashData = {
       id,
       name: data.name,
@@ -94,6 +98,8 @@ export const createRestaurant = async (
     await client.hSet(restaurantKey, hashData);
 
     client.zAdd(restaurantsByRatingKey, { score: 0, value: id });
+
+    client.bf.add(bloomkey,bloomString);
 
     return successResponse(res, hashData, "Restaurant created", 201);
   } catch (error) {

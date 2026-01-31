@@ -11,6 +11,7 @@ export function getRestaurantKey(restaurantId:string):string{
 export const restaurantDetailsKeyById=(id:string):string=>getKeyName("restaurant_details",id);
 export const restaurantsByRatingKey=getKeyName("restaurants_by_rating");
 export const indexKey=getKeyName("idx","restaurants")
+export const bloomkey=getKeyName("bloom_restaurants")
 // Review Keys
 export const reviewKeyById=(reviewId:string):string=>getKeyName("review",reviewId);
 export const reviewsDetailsKeyByID=(restaurantId:string):string=>getKeyName("review_details",restaurantId);
