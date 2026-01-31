@@ -1,11 +1,12 @@
 import type { Request, Response, NextFunction } from "express";
 import { nanoid } from "nanoid";
 import { getRedisClient } from "@/utils/client.js";
-import { cuisinesKey, cuisinesKeyByName, getRestaurantKey, restaurantByCuisineKeyByID, restaurantsByRatingKey, reviewKeyById, reviewsDetailsKeyByID } from "@/utils/keys.js";
+import { cuisinesKey, cuisinesKeyByName, getRestaurantKey, restaurantByCuisineKeyByID, restaurantsByRatingKey, reviewKeyById, reviewsDetailsKeyByID, weatherKeyById } from "@/utils/keys.js";
 import { successResponse, errorResponse } from "@/utils/responses.js";
 import { paginateFunctions } from "@/utils/pageination.js";
 import type { ReviewsType } from "@/schemas/reviews.js";
 import type { RestaurantsType } from "@/schemas/restaurants.js";
+import { fetchWeatherData } from "@/utils/weather.js";
 
 export const getAllRestaurants=async(req:Request,res:Response,next:NextFunction)=>{
   try {
@@ -22,6 +23,27 @@ export const getAllRestaurants=async(req:Request,res:Response,next:NextFunction)
       })
     )
     return successResponse(res,restaurants)
+  } catch (error) {
+    next(error)
+  }
+}
+export const getRestaurantWeather=async(req:Request,res:Response,next:NextFunction)=>{
+  try {
+    const {restaurantId}=req.params as {restaurantId:string};
+    const client=await getRedisClient();
+    const weatherKey=weatherKeyById(restaurantId);
+    const cachedWeather=await client.get(weatherKey);
+    if(cachedWeather){
+      return successResponse(res,JSON.parse(cachedWeather))
+    }
+    const restaurantKey=getRestaurantKey(restaurantId);
+    const coodrs=await client.hGet(restaurantKey,"location") ;
+    if(!coodrs){
+      return errorResponse(res,"Location not found for restaurant",404);
+    }
+    const weatherData= await fetchWeatherData(coodrs);
+    await client.setEx(weatherKey,3600,JSON.stringify(weatherData));
+    return successResponse(res,weatherData)
   } catch (error) {
     next(error)
   }
@@ -64,19 +86,19 @@ export const createRestaurant = async (
 };
 
 export const getRestaurantById = async (
-  req: Request<{ id: string }>,
+  req: Request<{ restaurantId: string }>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { id } = req.params;
+    const { restaurantId } = req.params;
     const client = await getRedisClient();
-    const restaurantKey = getRestaurantKey(id);
+    const restaurantKey = getRestaurantKey(restaurantId);
 
     const [viewCount, restaurant,cuisines] = await Promise.all([
       client.hIncrBy(restaurantKey, "viewCount", 1),
       client.hGetAll(restaurantKey),
-      client.sMembers(restaurantByCuisineKeyByID(id))
+      client.sMembers(restaurantByCuisineKeyByID(restaurantId))
     ]);
 
     return successResponse(res, {...restaurant,cuisines}, "Restaurant retrieved");
@@ -86,21 +108,21 @@ export const getRestaurantById = async (
 };
 
 export const createRestaurantReview = async (
-  req: Request<{ id: string }>,
+  req: Request<{ restaurantId: string }>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { id } = req.params;
+    const { restaurantId } = req.params;
     const data = req.body as ReviewsType;
     const client = await getRedisClient();
 
     const reviewId = nanoid();
-    const reviewKey = reviewKeyById(id);
+    const reviewKey = reviewKeyById(restaurantId);
     const reviewDetailsKey = reviewsDetailsKeyByID(reviewId);
-    const restaurantKey=getRestaurantKey(id)
+    const restaurantKey=getRestaurantKey(restaurantId)
     const hashData = {
-      restaurant_id: id,
+      restaurant_id: restaurantId,
       review_id: reviewId,
       timestamp: Date.now(),
       ...data,
@@ -116,7 +138,7 @@ export const createRestaurantReview = async (
     await Promise.all(
     [  client.zAdd(restaurantsByRatingKey,{
         score:avarageRating,
-        value:id
+        value:restaurantId
       }),
       client.hSet(restaurantKey,"avarageRating",avarageRating)
 
@@ -129,17 +151,17 @@ export const createRestaurantReview = async (
 };
 
 export const getRestaurantReviews = async (
-  req: Request<{ id: string }>,
+  req: Request<{ restaurantId: string }>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { id } = req.params;
+    const { restaurantId } = req.params;
     const { page = 1, limit = 10 } = req.query as any;
     const { startIndex, endIndex } = paginateFunctions(page, limit);
 
     const client = await getRedisClient();
-    const reviewKey = reviewKeyById(id);
+    const reviewKey = reviewKeyById(restaurantId);
 
     const reviewIds = await client.lRange(reviewKey, startIndex, endIndex);
     const reviews = await Promise.all(
@@ -154,16 +176,16 @@ export const getRestaurantReviews = async (
 
 
 export const deleteRestaurantReview = async (
-  req: Request<{ id: string; reviewId: string }>,
+  req: Request<{ restaurantId: string; reviewId: string }>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { id, reviewId } = req.params;
+    const { restaurantId, reviewId } = req.params;
     const client = await getRedisClient();
 
     const [removed, deleted] = await Promise.all([
-      client.lRem(reviewKeyById(id), 0, reviewId),
+      client.lRem(reviewKeyById(restaurantId), 0, reviewId),
       client.del(reviewsDetailsKeyByID(reviewId)),
     ]);
 

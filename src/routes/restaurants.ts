@@ -11,6 +11,7 @@ import {
   getRestaurantReviews,
   deleteRestaurantReview,
   getAllRestaurants,
+  getRestaurantWeather,
 } from "@/controller/restaurants_controller.js";
 
 const router = express.Router();
@@ -34,6 +35,24 @@ const router = express.Router();
  *         description: Restaurants retrieved successfully
  */
 router.get("/",getAllRestaurants)
+/**
+ * @swagger
+ * /restaurants/{restaurantId}/weather:
+ *   get:
+ *     summary: Get restaurant weather by restaurant ID
+ *     tags: [Restaurants]
+ *     parameters:
+ *       - in: path
+ *         name: restaurantId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Weather retrieved successfully
+ */
+
+router.get("/:restaurantId/weather",checkRestaurantExists,getRestaurantWeather)
 /**
  * @swagger
  * tags:
