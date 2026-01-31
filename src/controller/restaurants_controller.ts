@@ -1,11 +1,11 @@
 import type { Request, Response, NextFunction } from "express";
 import { nanoid } from "nanoid";
 import { getRedisClient } from "@/utils/client.js";
-import { cuisinesKey, cuisinesKeyByName, getRestaurantKey, restaurantByCuisineKeyByID, restaurantsByRatingKey, reviewKeyById, reviewsDetailsKeyByID, weatherKeyById } from "@/utils/keys.js";
+import { cuisinesKey, cuisinesKeyByName, getRestaurantKey, restaurantByCuisineKeyByID, restaurantDetailsKeyById, restaurantsByRatingKey, reviewKeyById, reviewsDetailsKeyByID, weatherKeyById } from "@/utils/keys.js";
 import { successResponse, errorResponse } from "@/utils/responses.js";
 import { paginateFunctions } from "@/utils/pageination.js";
 import type { ReviewsType } from "@/schemas/reviews.js";
-import type { RestaurantsType } from "@/schemas/restaurants.js";
+import type { RestaurantDetailsType, RestaurantsType } from "@/schemas/restaurants.js";
 import { fetchWeatherData } from "@/utils/weather.js";
 
 export const getAllRestaurants=async(req:Request,res:Response,next:NextFunction)=>{
@@ -106,7 +106,32 @@ export const getRestaurantById = async (
     next(error);
   }
 };
-
+export const getRestaurantDetails=async(req:Request,res:Response,next:NextFunction)=>{
+  try {
+    const { restaurantId } = req.params as { restaurantId: string };
+    const client = await getRedisClient();
+    const restaurantDetailsKey=restaurantDetailsKeyById(restaurantId);
+    const details=await client.get(restaurantDetailsKey);
+    if(!details){
+      return errorResponse(res,"Restaurant details not found",404);
+    }
+    return successResponse(res,JSON.parse(details),"Restaurant details retrieved");
+  } catch (error) {
+    next(error)
+  }
+}
+export const addRestaurantDetails=async(req:Request,res:Response,next:NextFunction)=>{
+  try {
+    const { restaurantId } = req.params as { restaurantId: string };
+    const restaurantBody= req.body as RestaurantDetailsType;
+    const client = await getRedisClient();
+    const restaurantDetailsKey=restaurantDetailsKeyById(restaurantId);
+    await client.set(restaurantDetailsKey,JSON.stringify(restaurantBody));
+    return successResponse(res,{},"Restaurant details saved",201);
+  } catch (error) {
+    next(error)
+  }
+}
 export const createRestaurantReview = async (
   req: Request<{ restaurantId: string }>,
   res: Response,

@@ -1,7 +1,7 @@
 import express from "express";
 import { validate } from "@/middlewares/validate.js";
 import { checkRestaurantExists } from "@/middlewares/checkRestaurant.js";
-import { RestaurantSchema } from "@/schemas/restaurants.js";
+import { RestaurantSchema, RestaurantSchemaDetails } from "@/schemas/restaurants.js";
 import { ReviewsSchema } from "@/schemas/reviews.js";
 
 import {
@@ -12,6 +12,8 @@ import {
   deleteRestaurantReview,
   getAllRestaurants,
   getRestaurantWeather,
+  getRestaurantDetails,
+  addRestaurantDetails,
 } from "@/controller/restaurants_controller.js";
 
 const router = express.Router();
@@ -35,6 +37,50 @@ const router = express.Router();
  *         description: Restaurants retrieved successfully
  */
 router.get("/",getAllRestaurants)
+/**
+ * @swagger
+ * /restaurants/{restaurantId}/details:
+ *   get:
+ *     summary: Get restaurant details by restaurant ID
+ *     tags: [Restaurants]
+ *     parameters:
+ *       - in: path
+ *         name: restaurantId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Restaurant details retrieved successfully
+ */
+
+
+router.get("/:restaurantId/details", checkRestaurantExists, getRestaurantDetails);
+/**
+ * @swagger
+ * /restaurants/{restaurantId}/details:
+ *   post:
+ *     summary: Create or update restaurant details
+ *     tags: [Restaurants]
+ *     parameters:
+ *       - in: path
+ *         name: restaurantId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RestaurantDetails'
+ *     responses:
+ *       200:
+ *         description: Restaurant details saved successfully
+ */
+
+
+router.post("/:restaurantId/details", checkRestaurantExists, validate(RestaurantSchemaDetails), addRestaurantDetails);
 /**
  * @swagger
  * /restaurants/{restaurantId}/weather:
