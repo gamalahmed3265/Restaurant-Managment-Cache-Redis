@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { nanoid } from "nanoid";
 import { getRedisClient } from "@/utils/client.js";
-import { cuisinesKey, cuisinesKeyByName, getRestaurantKey, restaurantByCuisineKeyByID, restaurantDetailsKeyById, restaurantsByRatingKey, reviewKeyById, reviewsDetailsKeyByID, weatherKeyById } from "@/utils/keys.js";
+import { cuisinesKey, cuisinesKeyByName, getRestaurantKey, indexKey, restaurantByCuisineKeyByID, restaurantDetailsKeyById, restaurantsByRatingKey, reviewKeyById, reviewsDetailsKeyByID, weatherKeyById } from "@/utils/keys.js";
 import { successResponse, errorResponse } from "@/utils/responses.js";
 import { paginateFunctions } from "@/utils/pageination.js";
 import type { ReviewsType } from "@/schemas/reviews.js";
@@ -24,6 +24,22 @@ export const getAllRestaurants=async(req:Request,res:Response,next:NextFunction)
     )
     return successResponse(res,restaurants)
   } catch (error) {
+    next(error)
+  }
+}
+export const searchinRestaurants=async(req:Request,res:Response,next:NextFunction)=>{
+  try {
+    const {q}=req.query as any;
+    const client=await getRedisClient();
+    const searchResult=await client.ft.search(
+      indexKey,
+      `@name:${q}`,
+      
+    );
+    // const restaurants=searchResult.documents.map((doc)=>doc.value);
+    return successResponse(res,searchResult)
+  }
+    catch (error) {
     next(error)
   }
 }

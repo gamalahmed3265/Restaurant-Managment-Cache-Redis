@@ -14,6 +14,7 @@ import {
   getRestaurantWeather,
   getRestaurantDetails,
   addRestaurantDetails,
+  searchinRestaurants,
 } from "@/controller/restaurants_controller.js";
 
 const router = express.Router();
@@ -37,6 +38,23 @@ const router = express.Router();
  *         description: Restaurants retrieved successfully
  */
 router.get("/",getAllRestaurants)
+/**
+ * @swagger
+ * /restaurants/search:
+ *   get:
+ *     summary: Search restaurants
+ *     tags: [Restaurants]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Restaurants retrieved successfully
+ */
+router.get("/search", searchinRestaurants);
 /**
  * @swagger
  * /restaurants/{restaurantId}/details:
